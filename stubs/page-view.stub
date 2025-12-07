@@ -1,0 +1,9 @@
+<div class="grid gap-6">
+    {{-- Page content goes here --}}
+    <div class="rounded-lg border bg-card p-6">
+        <h2 class="text-lg font-semibold mb-4">{{ title }}</h2>
+        <p class="text-sm text-muted-foreground">
+            This is a {{ title }} page. Add your content here.
+        </p>
+    </div>
+</div>

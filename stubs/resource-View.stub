@@ -1,0 +1,17 @@
+<?php
+
+namespace App\Laravilt\{{ panel }}\Resources\{{ name }};
+
+use Laravilt\Panel\Pages\Page;
+
+class View extends Page
+{
+    protected static string $view = '{{ panel }}/{{ name }}/View';
+
+    protected static ?string $title = 'View {{ name }}';
+
+    public function mount($id): void
+    {
+        // Load data for viewing
+    }
+}

@@ -1,0 +1,15 @@
+<?php
+
+namespace App\Laravilt\{{ studlyId }}\Pages;
+
+use Laravilt\Panel\Pages\Dashboard as BaseDashboard;
+
+class Dashboard extends BaseDashboard
+{
+    protected function getWidgets(): array
+    {
+        return [
+            // Add dashboard widgets here
+        ];
+    }
+}

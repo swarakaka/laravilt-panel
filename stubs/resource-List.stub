@@ -1,0 +1,17 @@
+<?php
+
+namespace App\Laravilt\{{ panel }}\Resources\{{ name }};
+
+use Laravilt\Panel\Pages\Page;
+
+class List extends Page
+{
+    protected static string $view = '{{ panel }}/{{ name }}/List';
+
+    protected static ?string $title = '{{ name }} List';
+
+    public function mount(): void
+    {
+        // Load data for listing
+    }
+}

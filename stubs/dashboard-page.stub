@@ -1,0 +1,27 @@
+<?php
+
+namespace {{ namespace }};
+
+use Laravilt\Panel\Pages\Dashboard;
+
+class {{ class }} extends Dashboard
+{
+    protected static ?string $title = '{{ title }}';
+
+    public function getWidgets(): array
+    {
+        return [
+            // Add widgets here
+        ];
+    }
+
+    public function getWidgetColumns(): int|array
+    {
+        return [
+            'default' => 1,
+            'sm' => 2,
+            'md' => 3,
+            'lg' => 3,
+        ];
+    }
+}

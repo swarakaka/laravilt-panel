@@ -1,0 +1,25 @@
+<?php
+
+namespace {{ namespace }};
+
+use Laravilt\Panel\Pages\Page;
+
+class {{ class }} extends Page
+{
+    protected static ?string $slug = '{{ slug }}';
+
+    protected static ?string $title = '{{ title }}';
+
+    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+
+    protected static ?string $navigationLabel = '{{ title }}';
+
+    protected static string $view = 'laravilt-panel::pages.{{ panelSlug }}.{{ slug }}';
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            // Define header actions here
+        ];
+    }
+}

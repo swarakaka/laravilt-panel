@@ -1,0 +1,91 @@
+{
+  "name": "laravilt-panel",
+  "version": "1.0.0",
+  "description": "MCP Server for Laravilt Panel Package Documentation",
+  "mcpServers": {
+    "laravilt-panel-docs": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/fadymondy/Sites/laravilt/packages/laravilt/panel/docs"
+      ],
+      "metadata": {
+        "description": "Provides access to Laravilt Panel package documentation",
+        "categories": ["panel", "admin", "laravel", "documentation"]
+      }
+    }
+  },
+  "resources": [
+    {
+      "uri": "laravilt://panel/docs/index",
+      "name": "Laravilt Panel Documentation",
+      "description": "Complete documentation for the Laravilt Panel package",
+      "mimeType": "text/markdown"
+    },
+    {
+      "uri": "laravilt://panel/api",
+      "name": "Panel API Reference",
+      "description": "Complete API reference for Panel configuration",
+      "mimeType": "text/markdown"
+    },
+    {
+      "uri": "laravilt://panel/pages",
+      "name": "Page Development Guide",
+      "description": "Guide for creating custom pages",
+      "mimeType": "text/markdown"
+    }
+  ],
+  "tools": [
+    {
+      "name": "search_panel_docs",
+      "description": "Search the Laravilt Panel documentation for specific topics",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query (e.g., 'navigation', 'middleware', 'multi-tenancy')"
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "get_panel_config",
+      "description": "Get panel configuration options and examples",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "feature": {
+            "type": "string",
+            "description": "Feature name (e.g., 'authentication', 'navigation', 'pages')"
+          }
+        },
+        "required": ["feature"]
+      }
+    },
+    {
+      "name": "list_panel_methods",
+      "description": "List all available Panel methods and their signatures",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "get_page_example",
+      "description": "Get example code for creating custom pages",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "pageType": {
+            "type": "string",
+            "description": "Type of page (e.g., 'dashboard', 'form', 'table', 'settings')"
+          }
+        },
+        "required": ["pageType"]
+      }
+    }
+  ]
+}

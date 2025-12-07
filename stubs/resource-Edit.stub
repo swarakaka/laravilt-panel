@@ -1,0 +1,17 @@
+<?php
+
+namespace App\Laravilt\{{ panel }}\Resources\{{ name }};
+
+use Laravilt\Panel\Pages\Page;
+
+class Edit extends Page
+{
+    protected static string $view = '{{ panel }}/{{ name }}/Edit';
+
+    protected static ?string $title = 'Edit {{ name }}';
+
+    public function mount($id): void
+    {
+        // Load data for editing
+    }
+}

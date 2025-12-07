@@ -1,0 +1,17 @@
+<?php
+
+namespace App\Laravilt\{{ panel }}\Resources\{{ name }};
+
+use Laravilt\Panel\Pages\Page;
+
+class Create extends Page
+{
+    protected static string $view = '{{ panel }}/{{ name }}/Create';
+
+    protected static ?string $title = 'Create {{ name }}';
+
+    public function mount(): void
+    {
+        // Initialize create form
+    }
+}
