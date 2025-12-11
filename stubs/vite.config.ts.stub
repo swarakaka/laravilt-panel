@@ -1,0 +1,57 @@
+import { wayfinder } from '@laravel/vite-plugin-wayfinder';
+import tailwindcss from '@tailwindcss/vite';
+import vue from '@vitejs/plugin-vue';
+import laravel from 'laravel-vite-plugin';
+import { resolve } from 'path';
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+    plugins: [
+        laravel({
+            input: ['resources/js/app.ts'],
+            ssr: 'resources/js/ssr.ts',
+            refresh: true,
+        }),
+        tailwindcss(),
+        wayfinder({
+            formVariants: true,
+        }),
+        vue({
+            template: {
+                transformAssetUrls: {
+                    base: null,
+                    includeAbsolute: false,
+                },
+            },
+        }),
+    ],
+    resolve: {
+        alias: {
+            '@': resolve(__dirname, 'resources/js'),
+            '@laravilt/panel': resolve(__dirname, 'vendor/laravilt/panel/resources/js'),
+            '@laravilt/widgets': resolve(__dirname, 'vendor/laravilt/widgets/resources/js'),
+            '@laravilt/forms': resolve(__dirname, 'vendor/laravilt/forms/resources/js'),
+            '@laravilt/tables': resolve(__dirname, 'vendor/laravilt/tables/resources/js'),
+            '@laravilt/actions': resolve(__dirname, 'vendor/laravilt/actions/resources/js'),
+            '@laravilt/infolists': resolve(__dirname, 'vendor/laravilt/infolists/resources/js'),
+            '@laravilt/notifications': resolve(__dirname, 'vendor/laravilt/notifications/resources/js'),
+            '@laravilt/schemas': resolve(__dirname, 'vendor/laravilt/schemas/resources/js'),
+            '@laravilt/support': resolve(__dirname, 'vendor/laravilt/support/resources/js'),
+            '@laravilt/auth': resolve(__dirname, 'vendor/laravilt/auth/resources/js'),
+            '@laravilt/ai': resolve(__dirname, 'vendor/laravilt/ai/resources/js'),
+        },
+        dedupe: ['vue', '@inertiajs/vue3'],
+    },
+    optimizeDeps: {
+        include: ['@inertiajs/vue3', 'vue'],
+    },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    'vue-vendor': ['vue', '@inertiajs/vue3'],
+                },
+            },
+        },
+    },
+});

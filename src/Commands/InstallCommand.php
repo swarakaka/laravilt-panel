@@ -15,6 +15,12 @@ class InstallCommand extends Command
     {
         $this->info('Installing Laravilt Panel...');
 
+        // Publish Vite config
+        $this->publishViteConfig();
+
+        // Publish CSS
+        $this->publishCss();
+
         // Publish middleware
         $this->publishMiddleware();
 
@@ -41,6 +47,36 @@ class InstallCommand extends Command
         $this->info('✓ Run: php artisan make:panel admin to create your first panel.');
 
         return self::SUCCESS;
+    }
+
+    protected function publishViteConfig(): void
+    {
+        $stubPath = __DIR__.'/../../stubs/vite.config.ts.stub';
+        $targetPath = base_path('vite.config.ts');
+
+        if (File::exists($stubPath)) {
+            if (! File::exists($targetPath) || $this->option('force')) {
+                $this->copyStub($stubPath, $targetPath);
+                $this->components->info('Vite config published');
+            } else {
+                $this->components->warn('Skipped vite.config.ts (already exists, use --force to overwrite)');
+            }
+        }
+    }
+
+    protected function publishCss(): void
+    {
+        $stubPath = __DIR__.'/../../stubs/css/app.css.stub';
+        $targetPath = resource_path('css/app.css');
+
+        if (File::exists($stubPath)) {
+            if (! File::exists($targetPath) || $this->option('force')) {
+                $this->copyStub($stubPath, $targetPath);
+                $this->components->info('CSS published');
+            } else {
+                $this->components->warn('Skipped css/app.css (already exists, use --force to overwrite)');
+            }
+        }
     }
 
     protected function publishMiddleware(): void

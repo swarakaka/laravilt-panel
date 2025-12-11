@@ -29,10 +29,10 @@ const page = usePage<{
     };
 }>();
 
-const availableLocales = computed(() => page.props.panel?.availableLocales || []);
-const currentLocale = computed(() => page.props.panel?.currentLocale || 'en');
-const panelPath = computed(() => page.props.panel?.path || '');
-const panelId = computed(() => page.props.panel?.id || 'admin');
+const availableLocales = computed(() => page.props?.panel?.availableLocales || []);
+const currentLocale = computed(() => page.props?.panel?.currentLocale || 'en');
+const panelPath = computed(() => page.props?.panel?.path || '');
+const panelId = computed(() => page.props?.panel?.id || 'admin');
 
 const currentLocaleData = computed(() => {
     return availableLocales.value.find(l => l.value === currentLocale.value) || {
