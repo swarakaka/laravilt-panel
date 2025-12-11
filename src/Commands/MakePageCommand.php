@@ -59,10 +59,14 @@ class MakePageCommand extends GeneratorCommand
 
         $panel = Str::studly($this->argument('panel'));
         $pageName = Str::studly($this->argument('name'));
+        $slug = Str::kebab($pageName);
+        $title = Str::title(Str::snake($pageName, ' '));
 
         $replacements = [
             '{{ panel }}' => $panel,
             '{{ name }}' => $pageName,
+            '{{ slug }}' => $slug,
+            '{{ title }}' => $title,
         ];
 
         return str_replace(
