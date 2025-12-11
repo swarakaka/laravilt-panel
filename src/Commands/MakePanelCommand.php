@@ -166,7 +166,7 @@ class MakePanelCommand extends Command
         File::ensureDirectoryExists(dirname($providerPath));
         File::put($providerPath, $content);
 
-        $this->components->task("Creating panel provider", fn () => true);
+        $this->components->task('Creating panel provider', fn () => true);
     }
 
     /**
@@ -293,7 +293,7 @@ PHP;
             File::ensureDirectoryExists("{$basePath}/{$directory}");
         }
 
-        $this->components->task("Creating directories", fn () => true);
+        $this->components->task('Creating directories', fn () => true);
     }
 
     /**
@@ -314,7 +314,7 @@ PHP;
         File::ensureDirectoryExists(dirname($pagePath));
         File::put($pagePath, $content);
 
-        $this->components->task("Creating Dashboard page", fn () => true);
+        $this->components->task('Creating Dashboard page', fn () => true);
     }
 
     /**
@@ -347,7 +347,7 @@ PHP;
         );
 
         File::put($providersFile, $content);
-        $this->components->task("Registering provider", fn () => true);
+        $this->components->task('Registering provider', fn () => true);
     }
 
     /**
@@ -357,7 +357,7 @@ PHP;
     {
         // Run notifications:table migration if database notifications is selected
         if (in_array('database-notifications', $features)) {
-            $this->components->task("Setting up database notifications", function () {
+            $this->components->task('Setting up database notifications', function () {
                 // Check if notifications table migration already exists
                 $migrations = File::glob(database_path('migrations/*_create_notifications_table.php'));
 
@@ -375,7 +375,7 @@ PHP;
 
         // Setup for passkeys (WebAuthn)
         if (in_array('passkeys', $features)) {
-            $this->components->task("Setting up passkeys", function () {
+            $this->components->task('Setting up passkeys', function () {
                 // Check if webauthn migrations exist
                 $migrations = File::glob(database_path('migrations/*_create_web_authn_credentials_table.php'));
 
@@ -395,7 +395,7 @@ PHP;
 
         // Setup for two-factor authentication
         if (in_array('two-factor', $features)) {
-            $this->components->task("Setting up two-factor authentication", function () {
+            $this->components->task('Setting up two-factor authentication', function () {
                 // Ensure Fortify 2FA is enabled
                 // This is typically done via config, but we can remind the user
                 return true;
