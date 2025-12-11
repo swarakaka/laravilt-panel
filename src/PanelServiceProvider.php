@@ -46,6 +46,11 @@ class PanelServiceProvider extends ServiceProvider
             __DIR__.'/../resources/js/components' => resource_path('js/components/laravilt'),
         ], 'laravilt-panel-assets');
 
+        // Publish UI components (Reka UI/Radix Vue primitives)
+        $this->publishes([
+            __DIR__.'/../stubs/ui' => resource_path('js/components/ui'),
+        ], 'laravilt-panel-ui');
+
         // Register panel's custom Authenticate middleware as 'panel.auth' alias
         $router = $this->app->make(\Illuminate\Routing\Router::class);
         $router->aliasMiddleware('panel.auth', Http\Middleware\Authenticate::class);
