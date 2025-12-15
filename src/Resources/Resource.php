@@ -7,6 +7,7 @@ namespace Laravilt\Panel\Resources;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Laravilt\AI\AIAgent;
+use Laravilt\Panel\Facades\Laravilt;
 use Laravilt\Schemas\Schema;
 use Laravilt\Tables\ApiResource;
 use Laravilt\Tables\Table;
@@ -41,6 +42,24 @@ abstract class Resource
     protected static bool $hasFlutter = false;
 
     protected static bool $hasAI = false;
+
+    /**
+     * Whether this resource is scoped to the current tenant.
+     * Set to false to make this resource accessible across all tenants.
+     */
+    protected static bool $isScopedToTenant = true;
+
+    /**
+     * Custom tenant ownership relationship name.
+     * If null, uses the panel's default tenant ownership relationship.
+     */
+    protected static ?string $tenantOwnershipRelationshipName = null;
+
+    /**
+     * Custom tenant relationship name on the model.
+     * Used when the model has a direct relationship to the tenant model.
+     */
+    protected static ?string $tenantRelationshipName = null;
 
     /**
      * Whether to show this resource's stats on the dashboard.
@@ -202,10 +221,78 @@ abstract class Resource
     /**
      * Get the Eloquent query for retrieving records.
      * Override this method to customize the query (e.g., filter by user, scope, etc.).
+     *
+     * When tenancy is enabled and this resource is scoped to tenant,
+     * the query will automatically filter by the current tenant.
      */
     public static function getEloquentQuery(): Builder
     {
-        return static::getModel()::query();
+        $query = static::getModel()::query();
+
+        // Apply tenant scoping if enabled
+        if (static::isScopedToTenant() && Laravilt::isTenancyEnabled() && Laravilt::hasTenant()) {
+            $ownershipColumn = static::getTenantOwnershipColumn();
+
+            if ($ownershipColumn) {
+                $query->where($ownershipColumn, Laravilt::getTenantId());
+            }
+        }
+
+        return $query;
+    }
+
+    /**
+     * Check if this resource is scoped to tenant.
+     */
+    public static function isScopedToTenant(): bool
+    {
+        return static::$isScopedToTenant;
+    }
+
+    /**
+     * Set whether this resource should be scoped to tenant.
+     */
+    public static function scopeToTenant(bool $condition = true): void
+    {
+        static::$isScopedToTenant = $condition;
+    }
+
+    /**
+     * Get the tenant ownership column for this resource.
+     */
+    public static function getTenantOwnershipColumn(): ?string
+    {
+        // Use custom relationship name if set
+        if (static::$tenantOwnershipRelationshipName !== null) {
+            return static::$tenantOwnershipRelationshipName.'_id';
+        }
+
+        // Fall back to panel's tenant ownership column
+        return Laravilt::getTenantOwnershipColumn();
+    }
+
+    /**
+     * Get the tenant relationship name for this resource.
+     */
+    public static function getTenantRelationshipName(): ?string
+    {
+        return static::$tenantRelationshipName;
+    }
+
+    /**
+     * Associate a record with the current tenant on creation.
+     */
+    public static function associateRecordWithTenant(Model $record): void
+    {
+        if (! static::isScopedToTenant() || ! Laravilt::isTenancyEnabled() || ! Laravilt::hasTenant()) {
+            return;
+        }
+
+        $ownershipColumn = static::getTenantOwnershipColumn();
+
+        if ($ownershipColumn && ! isset($record->{$ownershipColumn})) {
+            $record->{$ownershipColumn} = Laravilt::getTenantId();
+        }
     }
 
     public static function getLabel(): string

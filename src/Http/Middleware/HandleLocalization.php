@@ -33,7 +33,8 @@ class HandleLocalization
      * Format: 'namespace::file' for package translations or 'file' for app translations.
      */
     protected array $translationFiles = [
-        'laravilt-panel::panel',     // Panel package
+        'laravilt-panel::panel',     // Panel package (legacy)
+        'panel::panel',              // Panel package (alias)
         'laravilt-auth::auth',       // Auth package
         'laravilt-support::support', // Support package
         'laravilt-forms::fields',    // Forms package (legacy)

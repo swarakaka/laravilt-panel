@@ -1,0 +1,77 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Laravilt\Panel\Contracts\HasTenantAvatar;
+use Laravilt\Panel\Contracts\HasTenantName;
+
+class Team extends Model implements HasTenantName, HasTenantAvatar
+{
+    use HasFactory;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'name',
+        'slug',
+        'avatar',
+        'description',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'settings' => 'array',
+    ];
+
+    /**
+     * Get the users that belong to the team.
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'team_user')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the owner of the team.
+     */
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    /**
+     * Get the display name for the tenant.
+     */
+    public function getTenantName(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * Get the avatar URL for the tenant.
+     */
+    public function getTenantAvatarUrl(): ?string
+    {
+        return $this->avatar;
+    }
+
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+}

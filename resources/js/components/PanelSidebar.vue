@@ -14,6 +14,7 @@ import { Link } from '@inertiajs/vue3';
 import * as LucideIcons from 'lucide-vue-next';
 import { computed, type Component } from 'vue';
 import AppLogoIcon from './AppLogoIcon.vue';
+import TenantSwitcher from './TenantSwitcher.vue';
 
 // Props for component mode (when used via Blade bridge)
 const props = defineProps<{
@@ -23,6 +24,16 @@ const props = defineProps<{
         path: string
         brandName: string
         brandLogo?: string
+        hasTenancy?: boolean
+        tenancy?: {
+            current: any
+            tenants: any[]
+            canRegister: boolean
+            canEditProfile: boolean
+            hasTenantMenu: boolean
+            menuItems: Record<string, any>
+            switchUrl: string
+        }
     }
     user?: {
         name: string
@@ -88,12 +99,17 @@ const getIconComponent = (iconName: string | null | undefined): Component => {
 };
 
 const dashboardHref = computed(() => `/${panel.value.path || 'admin'}`);
+const hasTenancy = computed(() => panel.value.hasTenancy || false);
 </script>
 
 <template>
     <Sidebar collapsible="icon" variant="inset">
         <SidebarHeader>
-            <SidebarMenu>
+            <!-- Tenant Switcher (when tenancy is enabled) -->
+            <TenantSwitcher v-if="hasTenancy" />
+
+            <!-- Default Brand Header (when tenancy is disabled) -->
+            <SidebarMenu v-else>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
                         <Link :href="dashboardHref">

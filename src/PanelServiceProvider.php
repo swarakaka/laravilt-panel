@@ -19,6 +19,7 @@ class PanelServiceProvider extends ServiceProvider
         );
 
         $this->app->singleton(PanelRegistry::class);
+        $this->app->singleton(TenantManager::class);
     }
 
     /**
@@ -27,6 +28,9 @@ class PanelServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadTranslationsFrom(__DIR__.'/../lang', 'laravilt-panel');
+
+        // Also register translations with 'panel' alias for convenience
+        $this->loadTranslationsFrom(__DIR__.'/../lang', 'panel');
 
         $this->publishes([
             __DIR__.'/../config/laravilt-panel.php' => config_path('laravilt/panel.php'),
@@ -134,11 +138,16 @@ class PanelServiceProvider extends ServiceProvider
                     [IdentifyPanel::class.':'.$panel->getId()],
                     $authMiddleware,
                     [Http\Middleware\HandleLocalization::class],
+                    [Middleware\IdentifyTenant::class],
                     [Http\Middleware\SharePanelData::class]
                 ))
                     ->prefix($panel->getPath())
                     ->name($panel->getId().'.')
                     ->group(function () use ($panel) {
+                        // Register tenant routes if tenancy is enabled
+                        if ($panel->hasTenancy()) {
+                            $this->registerTenantRoutes($panel);
+                        }
                         // Register Select options search endpoint
                         Route::get('_select/search', [Http\Controllers\SelectOptionsController::class, 'search'])
                             ->name('select.search');
@@ -1207,6 +1216,94 @@ class PanelServiceProvider extends ServiceProvider
                 Commands\MakeRelationManagerCommand::class,
                 Commands\MakeClusterCommand::class,
             ]);
+        }
+    }
+
+    /**
+     * Register tenant routes for a panel.
+     */
+    protected function registerTenantRoutes(Panel $panel): void
+    {
+        // Tenant switch route (always available when tenancy is enabled)
+        Route::post('tenant/switch', [Http\Controllers\TenantController::class, 'switch'])
+            ->name('tenant.switch');
+
+        // Tenant list API route
+        Route::get('tenant/list', [Http\Controllers\TenantController::class, 'index'])
+            ->name('tenant.list');
+
+        // Tenant registration routes (if enabled)
+        if ($panel->hasTenantRegistration()) {
+            $registrationPage = $panel->getTenantRegistrationPage();
+
+            // Check if using custom page class or default
+            if (is_string($registrationPage) && class_exists($registrationPage) && $registrationPage !== 'default') {
+                // Custom page class - use its routes
+                $this->registerCustomTenantPage($registrationPage, 'tenant/register', 'tenant.register', $panel);
+            } else {
+                // Default registration controller
+                Route::get('tenant/register', [Http\Controllers\TenantRegistrationController::class, 'create'])
+                    ->name('tenant.register');
+
+                Route::post('tenant/register', [Http\Controllers\TenantRegistrationController::class, 'store'])
+                    ->name('tenant.register.store');
+            }
+        }
+
+        // Tenant settings/profile routes (if enabled)
+        if ($panel->hasTenantProfile()) {
+            $profilePage = $panel->getTenantProfilePage();
+
+            // Check if using custom page class or default
+            if (is_string($profilePage) && class_exists($profilePage) && $profilePage !== 'default') {
+                // Custom page class - use its routes
+                $this->registerCustomTenantPage($profilePage, 'tenant/settings', 'tenant.settings', $panel);
+            } else {
+                // Default settings controller
+                Route::get('tenant/settings', [Http\Controllers\TenantSettingsController::class, 'show'])
+                    ->name('tenant.settings');
+
+                Route::patch('tenant/settings/name', [Http\Controllers\TenantSettingsController::class, 'updateName'])
+                    ->name('tenant.settings.update-name');
+
+                Route::post('tenant/settings/members', [Http\Controllers\TenantSettingsController::class, 'inviteMember'])
+                    ->name('tenant.settings.invite-member');
+
+                Route::patch('tenant/settings/members/{member}/role', [Http\Controllers\TenantSettingsController::class, 'updateMemberRole'])
+                    ->name('tenant.settings.update-member-role');
+
+                Route::delete('tenant/settings/members/{member}', [Http\Controllers\TenantSettingsController::class, 'removeMember'])
+                    ->name('tenant.settings.remove-member');
+
+                Route::delete('tenant/settings', [Http\Controllers\TenantSettingsController::class, 'destroy'])
+                    ->name('tenant.settings.destroy');
+            }
+        }
+    }
+
+    /**
+     * Register routes for a custom tenant page class.
+     */
+    protected function registerCustomTenantPage(string $pageClass, string $path, string $routeName, Panel $panel): void
+    {
+        // Check if the page class has static methods for route registration
+        if (method_exists($pageClass, 'registerRoutes')) {
+            $pageClass::registerRoutes($path, $routeName);
+        } else {
+            // Default: Register GET for show and POST for store
+            Route::get($path, [$pageClass, 'show'])->name($routeName);
+
+            if (method_exists($pageClass, 'store')) {
+                Route::post($path, [$pageClass, 'store'])->name($routeName.'.store');
+            }
+
+            if (method_exists($pageClass, 'update')) {
+                Route::patch($path, [$pageClass, 'update'])->name($routeName.'.update');
+            }
+
+            if (method_exists($pageClass, 'destroy')) {
+                Route::delete($path, [$pageClass, 'destroy'])->name($routeName.'.destroy');
+            }
         }
     }
 }

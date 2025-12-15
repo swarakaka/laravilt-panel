@@ -333,4 +333,52 @@ return [
         'switch' => 'تغيير اللغة',
         'current' => 'اللغة الحالية',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tenancy
+    |--------------------------------------------------------------------------
+    */
+    'tenancy' => [
+        'select_tenant' => 'اختر الفريق',
+        'tenants' => 'الفرق',
+        'tenants_count' => ':count فرق',
+        'tenant_settings' => 'إعدادات الفريق',
+        'create_tenant' => 'إنشاء فريق',
+        'create_tenant_description' => 'أنشئ فريقاً جديداً للبدء في مساحة العمل الخاصة بك.',
+        'switch_tenant' => 'تبديل الفريق',
+        'no_tenants' => 'لا توجد فرق متاحة',
+        'register_team' => 'تسجيل فريق',
+        'team_profile' => 'ملف الفريق',
+        'team_name' => 'اسم الفريق',
+        'team_name_placeholder' => 'أدخل اسم الفريق',
+        'team_slug' => 'رابط الفريق (اختياري)',
+        'team_slug_placeholder' => 'فريقي',
+        'team_slug_help' => 'اتركه فارغاً للإنشاء التلقائي من اسم الفريق.',
+
+        // صفحة إعدادات الفريق
+        'settings' => [
+            'description' => 'إدارة إعدادات الفريق والأعضاء.',
+            'team_name_section' => 'اسم الفريق',
+            'team_name_description' => 'اسم الفريق ومعلومات المالك.',
+            'team_members_section' => 'أعضاء الفريق',
+            'team_members_description' => 'جميع الأشخاص الذين هم جزء من هذا الفريق.',
+            'add_member' => 'إضافة عضو للفريق',
+            'add_member_description' => 'أضف عضواً جديداً إلى فريقك للسماح له بالتعاون معك.',
+            'email' => 'البريد الإلكتروني',
+            'email_placeholder' => 'أدخل عنوان البريد الإلكتروني',
+            'role' => 'الدور',
+            'owner' => 'المالك',
+            'remove' => 'إزالة',
+            'remove_member_title' => 'إزالة عضو من الفريق',
+            'remove_member_description' => 'هل أنت متأكد من إزالة :name من الفريق؟',
+            'leave_team' => 'مغادرة الفريق',
+            'leave_team_description' => 'هل أنت متأكد من مغادرة هذا الفريق؟',
+            'danger_zone' => 'منطقة الخطر',
+            'danger_zone_description' => 'بمجرد حذف الفريق، لا يمكن التراجع. يرجى التأكد.',
+            'delete_team' => 'حذف الفريق',
+            'delete_team_title' => 'حذف الفريق',
+            'delete_team_description' => 'حذف هذا الفريق وجميع موارده نهائياً.',
+        ],
+    ],
 ];

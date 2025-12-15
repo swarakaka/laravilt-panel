@@ -333,4 +333,52 @@ return [
         'switch' => 'Switch Language',
         'current' => 'Current Language',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tenancy
+    |--------------------------------------------------------------------------
+    */
+    'tenancy' => [
+        'select_tenant' => 'Select Team',
+        'tenants' => 'Teams',
+        'tenants_count' => ':count teams',
+        'tenant_settings' => 'Team Settings',
+        'create_tenant' => 'Create Team',
+        'create_tenant_description' => 'Create a new team to get started with your workspace.',
+        'switch_tenant' => 'Switch Team',
+        'no_tenants' => 'No teams available',
+        'register_team' => 'Register a Team',
+        'team_profile' => 'Team Profile',
+        'team_name' => 'Team Name',
+        'team_name_placeholder' => 'Enter team name',
+        'team_slug' => 'Team URL (optional)',
+        'team_slug_placeholder' => 'my-team',
+        'team_slug_help' => 'Leave empty to auto-generate from the team name.',
+
+        // Team Settings Page
+        'settings' => [
+            'description' => 'Manage your team settings and members.',
+            'team_name_section' => 'Team Name',
+            'team_name_description' => 'The team\'s name and owner information.',
+            'team_members_section' => 'Team Members',
+            'team_members_description' => 'All of the people that are part of this team.',
+            'add_member' => 'Add Team Member',
+            'add_member_description' => 'Add a new team member to your team, allowing them to collaborate with you.',
+            'email' => 'Email',
+            'email_placeholder' => 'Enter email address',
+            'role' => 'Role',
+            'owner' => 'Owner',
+            'remove' => 'Remove',
+            'remove_member_title' => 'Remove Team Member',
+            'remove_member_description' => 'Are you sure you want to remove :name from the team?',
+            'leave_team' => 'Leave Team',
+            'leave_team_description' => 'Are you sure you want to leave this team?',
+            'danger_zone' => 'Danger Zone',
+            'danger_zone_description' => 'Once you delete a team, there is no going back. Please be certain.',
+            'delete_team' => 'Delete Team',
+            'delete_team_title' => 'Delete Team',
+            'delete_team_description' => 'Permanently delete this team and all of its resources.',
+        ],
+    ],
 ];

@@ -6,6 +6,8 @@ use Closure;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Laravilt\Auth\Pages\LocaleTimezone;
+use Laravilt\Panel\Contracts\HasTenants;
+use Laravilt\Panel\Facades\Laravilt;
 use Laravilt\Panel\PanelRegistry;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -53,6 +55,9 @@ class SharePanelData
                     // AI config
                     'hasAI' => $panel->hasAIProviders(),
                     'aiConfig' => $panel->getAIConfig(),
+                    // Tenancy config
+                    'hasTenancy' => $panel->hasTenancy(),
+                    'tenancy' => $panel->hasTenancy() ? $this->getTenancyData($request, $panel) : null,
                 ],
                 'notifications' => fn () => $this->getNotifications($request),
                 'databaseNotifications' => fn () => $this->getDatabaseNotifications($request),
@@ -140,6 +145,67 @@ class SharePanelData
             'readAt' => $notification->read_at?->toISOString(),
             'createdAt' => $notification->created_at?->toISOString(),
             'humanTime' => $notification->created_at?->diffForHumans(),
+        ];
+    }
+
+    /**
+     * Get tenancy data for the frontend.
+     */
+    protected function getTenancyData(Request $request, $panel): array
+    {
+        $user = $request->user();
+        $currentTenant = Laravilt::getTenant();
+        $slugAttribute = $panel->getTenantSlugAttribute();
+
+        // Get available tenants if user implements HasTenants
+        $tenants = [];
+        if ($user instanceof HasTenants) {
+            $tenants = $user->getTenants($panel)->map(function ($tenant) use ($currentTenant, $slugAttribute, $panel) {
+                $name = method_exists($tenant, 'getTenantName')
+                    ? $tenant->getTenantName()
+                    : ($tenant->name ?? $tenant->{$slugAttribute});
+
+                $avatar = method_exists($tenant, 'getTenantAvatarUrl')
+                    ? $tenant->getTenantAvatarUrl()
+                    : null;
+
+                return [
+                    'id' => $tenant->getKey(),
+                    'name' => $name,
+                    'slug' => $tenant->{$slugAttribute},
+                    'avatar' => $avatar,
+                    'is_current' => $currentTenant && $currentTenant->getKey() === $tenant->getKey(),
+                ];
+            })->values()->toArray();
+        }
+
+        // Current tenant data
+        $current = null;
+        if ($currentTenant) {
+            $currentName = method_exists($currentTenant, 'getTenantName')
+                ? $currentTenant->getTenantName()
+                : ($currentTenant->name ?? $currentTenant->{$slugAttribute});
+
+            $currentAvatar = method_exists($currentTenant, 'getTenantAvatarUrl')
+                ? $currentTenant->getTenantAvatarUrl()
+                : null;
+
+            $current = [
+                'id' => $currentTenant->getKey(),
+                'name' => $currentName,
+                'slug' => $currentTenant->{$slugAttribute},
+                'avatar' => $currentAvatar,
+            ];
+        }
+
+        return [
+            'current' => $current,
+            'tenants' => $tenants,
+            'canRegister' => $panel->hasTenantRegistration(),
+            'canEditProfile' => $panel->hasTenantProfile(),
+            'hasTenantMenu' => $panel->hasTenantMenu(),
+            'menuItems' => $panel->getTenantMenuItems(),
+            'switchUrl' => '/'.$panel->getPath().'/tenant/switch',
         ];
     }
 
