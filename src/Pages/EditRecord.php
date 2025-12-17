@@ -41,8 +41,15 @@ abstract class EditRecord extends Page
      */
     public function create(\Illuminate\Http\Request $request, ...$parameters)
     {
-        // Extract the record ID from parameters (first parameter after request)
-        $recordId = $parameters[0] ?? null;
+        // Extract the record ID from the named route parameter
+        // This handles both regular routes and subdomain routes where {tenant} is also a parameter
+        $recordId = $request->route('record');
+
+        // Fallback to first parameter if route parameter not available
+        if (! $recordId && ! empty($parameters)) {
+            // Skip tenant parameter if present (for subdomain routes)
+            $recordId = count($parameters) > 1 ? end($parameters) : ($parameters[0] ?? null);
+        }
 
         if (! $recordId) {
             throw new \InvalidArgumentException('Record ID parameter is required for EditRecord pages');

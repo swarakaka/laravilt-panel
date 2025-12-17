@@ -147,13 +147,13 @@ const goToCreateTeam = () => {
                                 {{ trans('panel::panel.tenancy.tenants_count', { count: tenants.length }) }}
                             </span>
                         </div>
-                        <ChevronsUpDown class="ml-auto size-4" />
+                        <ChevronsUpDown class="ms-auto size-4" />
                     </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                     class="w-[--reka-dropdown-menu-trigger-width] min-w-56 rounded-lg"
                     side="bottom"
-                    align="start"
+                    align="end"
                     :side-offset="4"
                 >
                     <DropdownMenuLabel class="text-xs text-muted-foreground">

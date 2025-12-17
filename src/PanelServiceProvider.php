@@ -404,15 +404,22 @@ class PanelServiceProvider extends ServiceProvider
         })->name('resources.'.$slug.'.store');
 
         // GET /{slug}/{id} - Get single record for view/edit modal
-        Route::get($slug.'/{id}', function ($id) use ($resourceClass) {
-            if (request()->wantsJson() && ! request()->header('X-Inertia')) {
-                $pages = $resourceClass::getPages();
-                foreach ($pages as $pageConfig) {
-                    if (is_subclass_of($pageConfig['class'], \Laravilt\Panel\Pages\ManageRecords::class)) {
-                        $page = app($pageConfig['class']);
+        Route::get($slug.'/{id}', function () use ($resourceClass, $slug) {
+            // Use named route parameter to handle subdomain routes where {tenant} is also a parameter
+            $id = request()->route('id');
+            $pages = $resourceClass::getPages();
+            foreach ($pages as $pageConfig) {
+                if (is_subclass_of($pageConfig['class'], \Laravilt\Panel\Pages\ManageRecords::class)) {
+                    $page = app($pageConfig['class']);
 
+                    // For AJAX requests (non-Inertia), return JSON data
+                    if (request()->wantsJson() && ! request()->header('X-Inertia')) {
                         return $page->show(request(), $id);
                     }
+
+                    // For Inertia/browser requests, render the page with record data
+                    // This allows direct URL access like /admin/customer/5
+                    return $page->showRecord(request(), $id);
                 }
             }
 
@@ -420,7 +427,9 @@ class PanelServiceProvider extends ServiceProvider
         })->name('resources.'.$slug.'.show');
 
         // PUT /{slug}/{id} - Update record
-        Route::put($slug.'/{id}', function ($id) use ($resourceClass) {
+        Route::put($slug.'/{id}', function () use ($resourceClass) {
+            // Use named route parameter to handle subdomain routes where {tenant} is also a parameter
+            $id = request()->route('id');
             $pages = $resourceClass::getPages();
             foreach ($pages as $pageConfig) {
                 if (is_subclass_of($pageConfig['class'], \Laravilt\Panel\Pages\ManageRecords::class)) {
@@ -434,7 +443,9 @@ class PanelServiceProvider extends ServiceProvider
         })->name('resources.'.$slug.'.update');
 
         // DELETE /{slug}/{id} - Delete record
-        Route::delete($slug.'/{id}', function ($id) use ($resourceClass) {
+        Route::delete($slug.'/{id}', function () use ($resourceClass) {
+            // Use named route parameter to handle subdomain routes where {tenant} is also a parameter
+            $id = request()->route('id');
             $pages = $resourceClass::getPages();
             foreach ($pages as $pageConfig) {
                 if (is_subclass_of($pageConfig['class'], \Laravilt\Panel\Pages\ManageRecords::class)) {
@@ -467,7 +478,9 @@ class PanelServiceProvider extends ServiceProvider
      */
     protected function registerColumnUpdateRoute(string $resourceClass, string $slug, string $modelClass, Panel $panel): void
     {
-        Route::patch($slug.'/{id}/column', function ($id) use ($resourceClass, $modelClass) {
+        Route::patch($slug.'/{id}/column', function () use ($resourceClass, $modelClass) {
+            // Use named route parameter to handle subdomain routes where {tenant} is also a parameter
+            $id = request()->route('id');
             $record = $modelClass::findOrFail($id);
             $column = request()->input('column');
             $value = request()->input('value');
@@ -575,7 +588,10 @@ class PanelServiceProvider extends ServiceProvider
         }
 
         // Route: GET /{slug}/{id}/relations/{relationship}
-        Route::get($slug.'/{id}/relations/{relationship}', function ($id, $relationship) use ($resourceClass, $modelClass) {
+        Route::get($slug.'/{id}/relations/{relationship}', function () use ($resourceClass, $modelClass) {
+            // Use named route parameters to handle subdomain routes where {tenant} is also a parameter
+            $id = request()->route('id');
+            $relationship = request()->route('relationship');
             $record = $modelClass::findOrFail($id);
 
             // Find the relation manager class
@@ -625,7 +641,10 @@ class PanelServiceProvider extends ServiceProvider
         })->name('resources.'.$slug.'.relations');
 
         // Route: POST /{slug}/{id}/relations/{relationship} - Create related record
-        Route::post($slug.'/{id}/relations/{relationship}', function ($id, $relationship) use ($resourceClass, $modelClass) {
+        Route::post($slug.'/{id}/relations/{relationship}', function () use ($resourceClass, $modelClass) {
+            // Use named route parameters to handle subdomain routes where {tenant} is also a parameter
+            $id = request()->route('id');
+            $relationship = request()->route('relationship');
             $record = $modelClass::findOrFail($id);
 
             // Find the relation manager class
@@ -669,7 +688,11 @@ class PanelServiceProvider extends ServiceProvider
         })->name('resources.'.$slug.'.relations.create');
 
         // Route: PUT /{slug}/{id}/relations/{relationship}/{relationId} - Update related record
-        Route::put($slug.'/{id}/relations/{relationship}/{relationId}', function ($id, $relationship, $relationId) use ($resourceClass, $modelClass) {
+        Route::put($slug.'/{id}/relations/{relationship}/{relationId}', function () use ($resourceClass, $modelClass) {
+            // Use named route parameters to handle subdomain routes where {tenant} is also a parameter
+            $id = request()->route('id');
+            $relationship = request()->route('relationship');
+            $relationId = request()->route('relationId');
             $record = $modelClass::findOrFail($id);
 
             // Find the relation manager class
@@ -713,7 +736,11 @@ class PanelServiceProvider extends ServiceProvider
         })->name('resources.'.$slug.'.relations.update');
 
         // Route: DELETE /{slug}/{id}/relations/{relationship}/{relationId} - Delete related record
-        Route::delete($slug.'/{id}/relations/{relationship}/{relationId}', function ($id, $relationship, $relationId) use ($resourceClass, $modelClass) {
+        Route::delete($slug.'/{id}/relations/{relationship}/{relationId}', function () use ($resourceClass, $modelClass) {
+            // Use named route parameters to handle subdomain routes where {tenant} is also a parameter
+            $id = request()->route('id');
+            $relationship = request()->route('relationship');
+            $relationId = request()->route('relationId');
             $record = $modelClass::findOrFail($id);
 
             // Find the relation manager class
@@ -756,7 +783,10 @@ class PanelServiceProvider extends ServiceProvider
         })->name('resources.'.$slug.'.relations.delete');
 
         // Route: POST /{slug}/{id}/relations/{relationship}/bulk-delete - Bulk delete related records
-        Route::post($slug.'/{id}/relations/{relationship}/bulk-delete', function ($id, $relationship) use ($resourceClass, $modelClass) {
+        Route::post($slug.'/{id}/relations/{relationship}/bulk-delete', function () use ($resourceClass, $modelClass) {
+            // Use named route parameters to handle subdomain routes where {tenant} is also a parameter
+            $id = request()->route('id');
+            $relationship = request()->route('relationship');
             $record = $modelClass::findOrFail($id);
 
             // Find the relation manager class
@@ -809,7 +839,11 @@ class PanelServiceProvider extends ServiceProvider
         })->name('resources.'.$slug.'.relations.bulk-delete');
 
         // Route: PATCH /{slug}/{id}/relations/{relationship}/{relationId}/column - Update single column (for toggle columns)
-        Route::patch($slug.'/{id}/relations/{relationship}/{relationId}/column', function ($id, $relationship, $relationId) use ($resourceClass, $modelClass) {
+        Route::patch($slug.'/{id}/relations/{relationship}/{relationId}/column', function () use ($resourceClass, $modelClass) {
+            // Use named route parameters to handle subdomain routes where {tenant} is also a parameter
+            $id = request()->route('id');
+            $relationship = request()->route('relationship');
+            $relationId = request()->route('relationId');
             $record = $modelClass::findOrFail($id);
 
             // Find the relation manager class
@@ -1247,7 +1281,9 @@ class PanelServiceProvider extends ServiceProvider
 
         // Register DELETE route if page has destroy method
         if (method_exists($pageClass, 'destroy')) {
-            Route::delete($slug.'/{id}', function ($id) use ($pageClass, $panel) {
+            Route::delete($slug.'/{id}', function () use ($pageClass, $panel) {
+                // Use named route parameter to handle subdomain routes where {tenant} is also a parameter
+                $id = request()->route('id');
                 $page = app($pageClass);
                 $page->panel($panel);
                 $page->boot();

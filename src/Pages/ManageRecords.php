@@ -498,7 +498,7 @@ abstract class ManageRecords extends ListRecords
     }
 
     /**
-     * Show a single record (for view/edit modal).
+     * Show a single record (for view/edit modal via AJAX).
      */
     public function show(Request $request, $id): JsonResponse
     {
@@ -517,6 +517,52 @@ abstract class ManageRecords extends ListRecords
                 'success' => false,
                 'message' => $e->getMessage(),
             ], 404);
+        }
+    }
+
+    /**
+     * Show a single record via Inertia (direct URL access).
+     * This renders the page with the record pre-loaded for viewing/editing.
+     */
+    public function showRecord(Request $request, $id)
+    {
+        $resource = static::getResource();
+        $modelClass = $resource::getModel();
+        $slug = $resource::getSlug();
+
+        try {
+            $record = $modelClass::findOrFail($id);
+
+            // Boot and mount the page
+            $this->boot();
+            $this->mount();
+
+            // Get standard page props
+            $props = $this->getPageProps();
+
+            // Add the selected record to props for auto-opening modal
+            $props['selectedRecord'] = $record->toArray();
+            $props['selectedRecordId'] = $id;
+            $props['autoOpenModal'] = 'view'; // or 'edit' based on user preference
+
+            return \Inertia\Inertia::render($this->getView(), $props);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Record not found - redirect to index with error notification
+            \Laravilt\Notifications\Notification::danger()
+                ->title(__('notifications::notifications.error'))
+                ->body(__('notifications::notifications.record_not_found'))
+                ->send();
+
+            // Redirect back to the list page
+            return redirect()->back()->withErrors(['record' => 'Record not found']);
+        } catch (\Exception $e) {
+            // Other errors - redirect back with error
+            \Laravilt\Notifications\Notification::danger()
+                ->title(__('notifications::notifications.error'))
+                ->body($e->getMessage())
+                ->send();
+
+            return redirect()->back();
         }
     }
 

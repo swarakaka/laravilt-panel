@@ -177,12 +177,12 @@ const layoutProps = {
                     <Dialog v-model:open="showAddMemberDialog">
                         <DialogTrigger as-child>
                             <Button v-if="permissions.canAddTeamMembers" size="sm">
-                                <UserPlus class="h-4 w-4 mr-2" />
+                                <UserPlus class="h-4 w-4 me-2" />
                                 {{ trans('panel::panel.tenancy.settings.invite_member') }}
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
-                            <DialogHeader>
+                            <DialogHeader class="text-start">
                                 <DialogTitle>{{ trans('panel::panel.tenancy.settings.invite_member') }}</DialogTitle>
                                 <DialogDescription>
                                     {{ trans('panel::panel.tenancy.settings.invite_member_description') }}
@@ -221,7 +221,7 @@ const layoutProps = {
                                     <InputError :message="addMemberForm.errors.role" />
                                 </div>
                                 <div class="space-y-3">
-                                    <div class="flex items-center space-x-2">
+                                    <div class="flex items-center gap-2">
                                         <Checkbox
                                             id="send_email"
                                             :checked="addMemberForm.send_email"
@@ -231,7 +231,7 @@ const layoutProps = {
                                             {{ trans('panel::panel.tenancy.settings.send_email_notification') }}
                                         </Label>
                                     </div>
-                                    <div class="flex items-center space-x-2">
+                                    <div class="flex items-center gap-2">
                                         <Checkbox
                                             id="send_database"
                                             :checked="addMemberForm.send_database"
@@ -327,7 +327,7 @@ const layoutProps = {
         <!-- Remove Member Dialog -->
         <Dialog v-model:open="showRemoveDialog">
             <DialogContent>
-                <DialogHeader>
+                <DialogHeader class="text-start">
                     <DialogTitle>{{ trans('panel::panel.tenancy.settings.remove_member_title') }}</DialogTitle>
                     <DialogDescription>
                         {{ trans('panel::panel.tenancy.settings.remove_member_description', { name: memberToRemove?.name }) }}

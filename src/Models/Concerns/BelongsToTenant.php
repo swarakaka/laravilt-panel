@@ -40,6 +40,15 @@ trait BelongsToTenant
         static::addGlobalScope('tenant', function (Builder $builder) {
             $model = $builder->getModel();
 
+            // In multi-database mode, set the connection to 'tenant'
+            if (static::isMultiDatabaseMode()) {
+                $tenant = Laravilt::getTenant();
+                if ($tenant) {
+                    // Set the connection on the query builder
+                    $builder->getQuery()->connection = app('db')->connection('tenant');
+                }
+            }
+
             // In single-database mode, scope by tenant_id
             if (static::isSingleDatabaseMode() && static::hasTenantIdColumn()) {
                 $tenant = Laravilt::getTenant();
@@ -91,6 +100,13 @@ trait BelongsToTenant
      */
     protected static function isMultiDatabaseMode(): bool
     {
+        // First check if the current panel is in multi-database mode
+        $panel = \Laravilt\Panel\Facades\Panel::getCurrent();
+        if ($panel && $panel->isMultiDatabaseTenancy()) {
+            return true;
+        }
+
+        // Fall back to config setting
         $mode = config('laravilt-tenancy.mode', 'single');
 
         return TenancyMode::tryFrom($mode)?->isMultiDatabase() ?? false;
