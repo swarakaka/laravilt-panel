@@ -5,6 +5,9 @@
 [![Latest Stable Version](https://poser.pugx.org/laravilt/panel/version.svg)](https://packagist.org/packages/laravilt/panel)
 [![License](https://poser.pugx.org/laravilt/panel/license.svg)](https://packagist.org/packages/laravilt/panel)
 [![Downloads](https://poser.pugx.org/laravilt/panel/d/total.svg)](https://packagist.org/packages/laravilt/panel)
+[![Dependabot Updates](https://github.com/laravilt/panel/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/laravilt/panel/actions/workflows/dependabot/dependabot-updates)
+[![PHP Code Styling](https://github.com/laravilt/panel/actions/workflows/fix-php-code-styling.yml/badge.svg)](https://github.com/laravilt/panel/actions/workflows/fix-php-code-styling.yml)
+[![Tests](https://github.com/laravilt/panel/actions/workflows/tests.yml/badge.svg)](https://github.com/laravilt/panel/actions/workflows/tests.yml)
 
 A powerful admin panel framework for Laravel with Vue.js (Inertia.js) frontend. Build beautiful, reactive admin panels with minimal effort.
 
