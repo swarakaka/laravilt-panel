@@ -101,6 +101,20 @@ class PanelServiceProvider extends ServiceProvider
             __DIR__.'/../stubs/components/NavMain.vue.stub' => resource_path('js/components/NavMain.vue'),
         ], 'laravilt-panel-components');
 
+        // Publish Teams migration (for teams-based tenancy)
+        $this->publishes([
+            __DIR__.'/../stubs/migrations/create_teams_table.php.stub' => database_path('migrations/'.date('Y_m_d_His', time()).'_create_teams_table.php'),
+        ], 'laravilt-teams-migration');
+
+        // Publish Team model and HasTeams trait (for teams-based tenancy)
+        $this->publishes([
+            __DIR__.'/../stubs/Models/Team.php.stub' => app_path('Models/Team.php'),
+        ], 'laravilt-teams-model');
+
+        $this->publishes([
+            __DIR__.'/../stubs/Concerns/HasTeams.php.stub' => app_path('Concerns/HasTeams.php'),
+        ], 'laravilt-teams-trait');
+
         // Register panel's custom Authenticate middleware as 'panel.auth' alias
         $router = $this->app->make(\Illuminate\Routing\Router::class);
         $router->aliasMiddleware('panel.auth', Http\Middleware\Authenticate::class);
