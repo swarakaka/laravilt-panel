@@ -283,6 +283,13 @@ const hasFormSchema = computed(() => {
     });
 });
 
+// Check if schema has nested wrapper objects (Schema containers with fields/schema property)
+// vs flat form components (TextInput, Checkbox, etc. directly in schema array)
+const hasNestedSchemaWrappers = computed(() => {
+    if (!props.schema || !Array.isArray(props.schema)) return false;
+    return props.schema.some((item: any) => item.fields || item.schema);
+});
+
 // Check if schema contains InfoList (View pages - should not have internal scroll)
 const hasInfoListSchema = computed(() => {
     if (!props.schema || !Array.isArray(props.schema)) return false;
@@ -378,16 +385,8 @@ const handleFormSubmit = (event: Event) => {
         onError: (errors) => {
             console.error('Validation errors received:', errors);
         },
-        onSuccess: (page) => {
-            // Check if action returned a redirect URL (for cross-domain redirects)
-            // Check both snake_case and camelCase for compatibility
-            const actionData = page?.props?.action_updated_data ||
-                               page?.props?.actionUpdatedData ||
-                               (window as any).__laravilt_action_data;
-            if (actionData?.redirect) {
-                window.location.href = actionData.redirect;
-                return;
-            }
+        onSuccess: () => {
+            // Action executed successfully
         },
     });
 };
@@ -983,8 +982,22 @@ onMounted(() => {
                     class="flex flex-col gap-6"
                 >
                     <ErrorProvider :errors="$page.props.errors || {}">
-                        <!-- Render Schema -->
-                        <Schema ref="formRendererRef" :schema="schema" :form-controller="formController" />
+                        <!-- Render Schema - handle both nested wrappers and flat form components -->
+                        <template v-if="hasNestedSchemaWrappers">
+                            <!-- Nested schema wrappers (e.g., RegisterTenant with Schema container) -->
+                            <template v-for="(item, index) in schema" :key="index">
+                                <Schema
+                                    v-if="item.fields || item.schema"
+                                    ref="formRendererRef"
+                                    :schema="item.schema || item.fields || []"
+                                    :form-controller="formController"
+                                />
+                            </template>
+                        </template>
+                        <template v-else>
+                            <!-- Flat form components (e.g., Login page) -->
+                            <Schema ref="formRendererRef" :schema="schema" :form-controller="formController" />
+                        </template>
 
                         <!-- Submit Actions -->
                         <div class="flex flex-col gap-4">
@@ -992,7 +1005,7 @@ onMounted(() => {
                                 v-for="action in actionsWithUrl"
                                 :key="action.name"
                                 v-bind="action"
-                                :getFormData="() => formRendererRef?.getFormData()"
+                                :getFormData="getFormRendererData"
                             />
                         </div>
 
@@ -1073,8 +1086,14 @@ onMounted(() => {
                     class="flex flex-col gap-6"
                 >
                     <ErrorProvider :errors="errors">
-                        <!-- Render Schema -->
-                        <Schema :schema="schema" :form-controller="formController" />
+                        <!-- Render Schema - iterate over schema items and extract inner schema -->
+                        <template v-for="(item, index) in schema" :key="index">
+                            <Schema
+                                v-if="item.fields || item.schema"
+                                :schema="item.schema || item.fields || []"
+                                :form-controller="formController"
+                            />
+                        </template>
                     </ErrorProvider>
                 </Form>
 

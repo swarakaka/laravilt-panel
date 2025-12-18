@@ -43,7 +43,8 @@ trait BelongsToTenant
             // In multi-database mode, set the connection to 'tenant'
             if (static::isMultiDatabaseMode()) {
                 $tenant = Laravilt::getTenant();
-                if ($tenant) {
+                // Only set connection if tenant exists AND the tenant connection is configured
+                if ($tenant && static::hasTenantConnection()) {
                     // Set the connection on the query builder
                     $builder->getQuery()->connection = app('db')->connection('tenant');
                 }
@@ -74,10 +75,19 @@ trait BelongsToTenant
     {
         if (static::isMultiDatabaseMode()) {
             $connection = $this->getTenantConnectionName();
-            if ($connection) {
+            // Only set connection if it exists and is configured
+            if ($connection && static::hasTenantConnection()) {
                 $this->setConnection($connection);
             }
         }
+    }
+
+    /**
+     * Check if the tenant database connection is configured.
+     */
+    protected static function hasTenantConnection(): bool
+    {
+        return config('database.connections.tenant') !== null;
     }
 
     /**

@@ -126,7 +126,14 @@ class Dashboard extends Page
 
             $label = $resourceClass::getPluralLabel() ?? $resourceClass::getLabel() ?? class_basename($model);
             $icon = $resourceClass::getNavigationIcon() ?? 'Database';
-            $count = $model::count();
+
+            // Try to count records - may fail if model uses tenant connection on central domain
+            try {
+                $count = $model::count();
+            } catch (\Exception $e) {
+                // Skip this resource if we can't access its table (e.g., tenant model on central domain)
+                continue;
+            }
 
             // Get the list URL for the resource
             $url = null;

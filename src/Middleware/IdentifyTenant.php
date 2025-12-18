@@ -132,6 +132,30 @@ class IdentifyTenant
             return $next($request);
         }
 
+        // Check if user has any tenants FIRST
+        // This ensures new users are redirected before any session-based tenant resolution
+        $tenants = $user->getTenants($panel);
+
+        if ($tenants->isEmpty()) {
+            // User has no tenants
+            if ($panel->hasTenantRegistration()) {
+                // Redirect to tenant registration
+                $registrationUrl = '/'.$panel->getPath().'/tenant/register';
+
+                // Don't redirect if already on registration page or logout
+                if (! $request->is($panel->getPath().'/tenant/register*') &&
+                    ! $request->is($panel->getPath().'/logout')) {
+                    return redirect($registrationUrl);
+                }
+
+                // Allow access to registration page without tenant
+                return $next($request);
+            }
+
+            // Tenant registration is disabled - abort with error
+            abort(403, 'You do not belong to any team. Please contact an administrator.');
+        }
+
         // Get tenant from route parameter or session
         $tenant = $this->resolveTenant($request, $panel, $user);
 
@@ -140,25 +164,9 @@ class IdentifyTenant
             $tenant = $user->getDefaultTenant($panel);
         }
 
-        // If still no tenant, try to resolve or create one
+        // If still no tenant, use first available (we already know user has tenants)
         if (! $tenant) {
-            $tenants = $user->getTenants($panel);
-
-            if ($tenants->isEmpty()) {
-                // User has no tenants - redirect to tenant registration
-                $registrationUrl = '/'.$panel->getPath().'/tenant/register';
-
-                // Don't redirect if already on registration page
-                if (! $request->is($panel->getPath().'/tenant/register*')) {
-                    return redirect($registrationUrl);
-                }
-
-                // Allow access to registration page without tenant
-                return $next($request);
-            } else {
-                // User has tenants but none selected - use first one
-                $tenant = $tenants->first();
-            }
+            $tenant = $tenants->first();
         }
 
         // Verify user can access this tenant
