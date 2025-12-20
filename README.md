@@ -249,10 +249,81 @@ return [
 ];
 ```
 
+## Migrating from Filament PHP
+
+Laravilt provides an automated migration tool to convert your existing Filament PHP v3/v4 resources to Laravilt.
+
+### Quick Migration
+
+```bash
+php artisan laravilt:filament
+```
+
+This interactive command will:
+1. Scan your `app/Filament` directory for resources, pages, and widgets
+2. Let you select which components to migrate
+3. Convert namespaces, icons, and method signatures automatically
+4. Generate Laravilt-compatible files in `app/Laravilt`
+
+### Migration Options
+
+```bash
+# Migrate from custom source directory
+php artisan laravilt:filament --source=app/Filament/Admin
+
+# Migrate to custom target directory
+php artisan laravilt:filament --target=app/Laravilt/Backend
+
+# Specify panel name
+php artisan laravilt:filament --panel=Admin
+
+# Preview changes without making them
+php artisan laravilt:filament --dry-run
+
+# Overwrite existing files
+php artisan laravilt:filament --force
+
+# Migrate all components without selection prompt
+php artisan laravilt:filament --all
+```
+
+### What Gets Migrated
+
+| Filament | Laravilt |
+|----------|----------|
+| `Filament\Resources\Resource` | `Laravilt\Panel\Resources\Resource` |
+| `Filament\Forms\Components\*` | `Laravilt\Forms\Components\*` |
+| `Filament\Tables\Columns\*` | `Laravilt\Tables\Columns\*` |
+| `Filament\Infolists\Components\*` | `Laravilt\Infolists\Entries\*` |
+| `Filament\Actions\*` | `Laravilt\Actions\*` |
+| `Filament\Pages\*` | `Laravilt\Panel\Pages\*` |
+| `Filament\Widgets\*` | `Laravilt\Widgets\*` |
+| Heroicon enums | Lucide icon strings |
+| `Get`/`Set` utilities | `Laravilt\Support\Utilities\Get`/`Set` |
+
+### Third-Party Package Mappings
+
+The migration tool also handles common third-party Filament packages:
+
+- `RVxLab\FilamentColorPicker` → `Laravilt\Forms\Components\ColorPicker`
+- `FilamentTiptapEditor` → `Laravilt\Forms\Components\RichEditor`
+- `Mohamedsabil83\FilamentFormsTinyeditor` → `Laravilt\Forms\Components\RichEditor`
+- Spatie MediaLibrary uploads → `Laravilt\Forms\Components\FileUpload`
+
+### Post-Migration Steps
+
+After migration:
+
+1. Review the generated files for any manual adjustments
+2. Update your panel provider to register the new resources
+3. Run `npm run build` to compile frontend assets
+4. Test all CRUD operations
+
 ## Commands
 
 | Command | Description |
 |---------|-------------|
+| `laravilt:filament` | **Migrate Filament resources to Laravilt** |
 | `laravilt:panel {name}` | Create a new panel |
 | `laravilt:resource {panel}` | Create a resource with interactive prompts |
 | `laravilt:page {panel} {name}` | Create a standalone page |

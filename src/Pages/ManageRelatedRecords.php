@@ -106,7 +106,7 @@ abstract class ManageRelatedRecords extends Page
         $ownerRecord = $this->getOwnerRecord();
 
         if (! $ownerRecord) {
-            return null;
+            return;
         }
 
         $relationship = static::getRelationship();
@@ -179,11 +179,22 @@ abstract class ManageRelatedRecords extends Page
     }
 
     /**
-     * Get the URL for this page.
+     * Get the URL for this page with parameters.
+     *
+     * @param  array<string, mixed>  $parameters
      */
-    public static function getUrl(array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?Model $tenant = null): string
+    public static function getUrlWithParameters(array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?Model $tenant = null): string
     {
         // For ManageRelatedRecords, we need the parent record ID in the URL
-        return parent::getUrl($parameters, $isAbsolute, $panel, $tenant);
+        // This method provides extended URL generation with parameters
+        $baseUrl = parent::getUrl();
+
+        if (empty($parameters)) {
+            return $baseUrl;
+        }
+
+        $query = http_build_query($parameters);
+
+        return $baseUrl.'?'.$query;
     }
 }

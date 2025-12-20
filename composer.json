@@ -25,6 +25,9 @@
         "laravilt/support": "^1.0",
         "laravilt/actions": "^1.0",
         "laravilt/forms": "^1.0",
+        "laravilt/infolists": "^1.0",
+        "laravilt/tables": "^1.0",
+        "laravilt/ai": "^1.0",
         "stancl/tenancy": "^3.9"
     },
     "require-dev": {

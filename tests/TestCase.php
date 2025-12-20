@@ -15,6 +15,11 @@ class TestCase extends Orchestra
     {
         return [
             \Laravilt\Support\SupportServiceProvider::class,
+            \Laravilt\Forms\FormsServiceProvider::class,
+            \Laravilt\Tables\TablesServiceProvider::class,
+            \Laravilt\Infolists\InfolistsServiceProvider::class,
+            \Laravilt\AI\AIServiceProvider::class,
+            \Laravilt\Actions\ActionsServiceProvider::class,
             \Laravilt\Panel\PanelServiceProvider::class,
         ];
     }
