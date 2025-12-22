@@ -40,6 +40,16 @@ abstract class ManageRecords extends ListRecords
     protected bool $canDelete = true;
 
     /**
+     * Whether to show the restore action for soft deleted records.
+     */
+    protected bool $canRestore = true;
+
+    /**
+     * Whether to show the force delete action for soft deleted records.
+     */
+    protected bool $canForceDelete = true;
+
+    /**
      * Configure the form schema for create/edit modals.
      */
     public function form(Schema $schema): Schema
@@ -84,7 +94,13 @@ abstract class ManageRecords extends ListRecords
      */
     public function canView(): bool
     {
-        return $this->canView;
+        if (! $this->canView) {
+            return false;
+        }
+
+        $resource = static::getResource();
+
+        return $resource ? $resource::canView() : true;
     }
 
     /**
@@ -92,7 +108,13 @@ abstract class ManageRecords extends ListRecords
      */
     public function canCreate(): bool
     {
-        return $this->canCreate;
+        if (! $this->canCreate) {
+            return false;
+        }
+
+        $resource = static::getResource();
+
+        return $resource ? $resource::canCreate() : true;
     }
 
     /**
@@ -100,7 +122,13 @@ abstract class ManageRecords extends ListRecords
      */
     public function canEdit(): bool
     {
-        return $this->canEdit;
+        if (! $this->canEdit) {
+            return false;
+        }
+
+        $resource = static::getResource();
+
+        return $resource ? $resource::canUpdate() : true;
     }
 
     /**
@@ -108,7 +136,41 @@ abstract class ManageRecords extends ListRecords
      */
     public function canDelete(): bool
     {
-        return $this->canDelete;
+        if (! $this->canDelete) {
+            return false;
+        }
+
+        $resource = static::getResource();
+
+        return $resource ? $resource::canDelete() : true;
+    }
+
+    /**
+     * Check if soft deleted records can be restored.
+     */
+    public function canRestore(): bool
+    {
+        if (! $this->canRestore) {
+            return false;
+        }
+
+        $resource = static::getResource();
+
+        return $resource ? $resource::canRestore() : true;
+    }
+
+    /**
+     * Check if soft deleted records can be force deleted (permanently removed).
+     */
+    public function canForceDelete(): bool
+    {
+        if (! $this->canForceDelete) {
+            return false;
+        }
+
+        $resource = static::getResource();
+
+        return $resource ? $resource::canForceDelete() : true;
     }
 
     /**
@@ -158,6 +220,11 @@ abstract class ManageRecords extends ListRecords
             ->formSchema($formSchema)
             ->component(static::class) // For reactive fields in modal forms
             ->action(function (array $data) use ($modelClass, $page, $resource) {
+                // Authorize the action
+                if (! $resource::canCreate()) {
+                    abort(403, __('actions::actions.errors.unauthorized'));
+                }
+
                 // Apply mutation hook
                 $data = $page->mutateFormDataBeforeCreate($data);
 
@@ -322,7 +389,7 @@ abstract class ManageRecords extends ListRecords
 
                     return [];
                 })
-                ->action(function ($record, array $data) use ($modelClass, $page) {
+                ->action(function ($record, array $data) use ($modelClass, $page, $resource) {
                     // Get record ID - handle both object and array formats
                     $recordId = null;
                     if (is_object($record) && isset($record->id)) {
@@ -335,13 +402,19 @@ abstract class ManageRecords extends ListRecords
                         throw new \Exception(__('actions::actions.errors.no_record_id'));
                     }
 
+                    // Authorize the action
+                    $existingRecord = $modelClass::findOrFail($recordId);
+                    if (! $resource::canUpdate($existingRecord)) {
+                        abort(403, __('actions::actions.errors.unauthorized'));
+                    }
+
                     // Apply mutation hook
                     $data = $page->mutateFormDataBeforeSave($data);
 
                     // Extract many-to-many relationship data before filling
                     $relationships = $page->extractRelationshipData($data, $modelClass);
 
-                    $existingRecord = $modelClass::findOrFail($recordId);
+                    // Use the already fetched record from authorization check
                     $existingRecord->fill($data);
                     $existingRecord->save();
 
@@ -369,7 +442,7 @@ abstract class ManageRecords extends ListRecords
                 ->modalDescription(__('actions::actions.confirm_delete_description'))
                 ->modalSubmitActionLabel(__('actions::actions.buttons.confirm'))
                 ->modalCancelActionLabel(__('actions::actions.buttons.cancel'))
-                ->action(function ($record) use ($modelClass) {
+                ->action(function ($record) use ($modelClass, $resource) {
                     // Get record ID - handle both object and array formats
                     $recordId = null;
                     if (is_object($record) && isset($record->id)) {
@@ -383,6 +456,12 @@ abstract class ManageRecords extends ListRecords
                     }
 
                     $existingRecord = $modelClass::findOrFail($recordId);
+
+                    // Authorize the action
+                    if (! $resource::canDelete($existingRecord)) {
+                        abort(403, __('actions::actions.errors.unauthorized'));
+                    }
+
                     $existingRecord->delete();
 
                     \Laravilt\Notifications\Notification::success()
@@ -392,10 +471,91 @@ abstract class ManageRecords extends ListRecords
                 });
         }
 
-        // Build bulk actions
+        // Build bulk actions with authorization
         $bulkActions = [];
+
         if ($this->canDelete()) {
-            $bulkActions[] = DeleteBulkAction::make();
+            $bulkActions[] = DeleteBulkAction::make()
+                ->model($modelClass)
+                ->action(function (array $ids) use ($modelClass, $resource) {
+                    if (empty($ids)) {
+                        \Laravilt\Notifications\Notification::warning()
+                            ->title(__('tables::tables.bulk.no_selection_title'))
+                            ->body(__('tables::tables.bulk.no_selection_body'))
+                            ->send();
+
+                        return;
+                    }
+
+                    // Authorize: check if user can delete
+                    if (! $resource::canDelete()) {
+                        abort(403, __('actions::actions.errors.unauthorized'));
+                    }
+
+                    $deleted = $modelClass::whereIn('id', $ids)->delete();
+
+                    \Laravilt\Notifications\Notification::success()
+                        ->title(__('actions::actions.states.success'))
+                        ->body(__('tables::tables.messages.bulk_deleted', ['count' => $deleted]))
+                        ->send();
+                });
+        }
+
+        // Only add restore/force delete actions if model uses SoftDeletes
+        $usesSoftDeletes = in_array(\Illuminate\Database\Eloquent\SoftDeletes::class, class_uses_recursive($modelClass));
+
+        if ($usesSoftDeletes && $this->canRestore()) {
+            $bulkActions[] = \Laravilt\Actions\RestoreBulkAction::make()
+                ->model($modelClass)
+                ->action(function (array $ids) use ($modelClass, $resource) {
+                    if (empty($ids)) {
+                        \Laravilt\Notifications\Notification::warning()
+                            ->title(__('tables::tables.bulk.no_selection_title'))
+                            ->body(__('tables::tables.bulk.no_selection_body'))
+                            ->send();
+
+                        return;
+                    }
+
+                    // Authorize: check if user can restore
+                    if (! $resource::canRestore()) {
+                        abort(403, __('actions::actions.errors.unauthorized'));
+                    }
+
+                    $restored = $modelClass::withTrashed()->whereIn('id', $ids)->restore();
+
+                    \Laravilt\Notifications\Notification::success()
+                        ->title(__('actions::actions.states.success'))
+                        ->body(__('actions::actions.messages.bulk_restored', ['count' => $restored]))
+                        ->send();
+                });
+        }
+
+        if ($usesSoftDeletes && $this->canForceDelete()) {
+            $bulkActions[] = \Laravilt\Actions\ForceDeleteBulkAction::make()
+                ->model($modelClass)
+                ->action(function (array $ids) use ($modelClass, $resource) {
+                    if (empty($ids)) {
+                        \Laravilt\Notifications\Notification::warning()
+                            ->title(__('tables::tables.bulk.no_selection_title'))
+                            ->body(__('tables::tables.bulk.no_selection_body'))
+                            ->send();
+
+                        return;
+                    }
+
+                    // Authorize: check if user can force delete
+                    if (! $resource::canForceDelete()) {
+                        abort(403, __('actions::actions.errors.unauthorized'));
+                    }
+
+                    $deleted = $modelClass::withTrashed()->whereIn('id', $ids)->forceDelete();
+
+                    \Laravilt\Notifications\Notification::success()
+                        ->title(__('actions::actions.states.success'))
+                        ->body(__('actions::actions.messages.bulk_force_deleted', ['count' => $deleted]))
+                        ->send();
+                });
         }
 
         // Apply to table
@@ -410,6 +570,8 @@ abstract class ManageRecords extends ListRecords
         $table->setOption('canCreate', $this->canCreate());
         $table->setOption('canEdit', $this->canEdit());
         $table->setOption('canDelete', $this->canDelete());
+        $table->setOption('canRestore', $this->canRestore());
+        $table->setOption('canForceDelete', $this->canForceDelete());
         $table->setOption('label', $this->getResourceLabel());
         $table->setOption('pluralLabel', $this->getResourcePluralLabel());
 
@@ -458,7 +620,17 @@ abstract class ManageRecords extends ListRecords
     protected function getInertiaProps(): array
     {
         // Get parent props (view toggle, grid option, etc.)
-        return parent::getInertiaProps();
+        $props = parent::getInertiaProps();
+
+        // Add permission flags for frontend
+        return array_merge($props, [
+            'canView' => $this->canView(),
+            'canCreate' => $this->canCreate(),
+            'canEdit' => $this->canEdit(),
+            'canDelete' => $this->canDelete(),
+            'canRestore' => $this->canRestore(),
+            'canForceDelete' => $this->canForceDelete(),
+        ]);
     }
 
     /**

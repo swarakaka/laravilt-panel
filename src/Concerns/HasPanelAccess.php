@@ -77,7 +77,12 @@ trait HasPanelAccess
         $superAdminRole = config('laravilt-users.super_admin.role', 'super_admin');
 
         if (method_exists($this, 'hasRole')) {
-            return $this->hasRole($superAdminRole);
+            try {
+                return $this->hasRole($superAdminRole);
+            } catch (\Exception $e) {
+                // Role doesn't exist or Spatie Permission not installed
+                return false;
+            }
         }
 
         return false;
@@ -95,7 +100,12 @@ trait HasPanelAccess
         $adminRole = config('laravilt-users.admin_role', 'admin');
 
         if (method_exists($this, 'hasRole')) {
-            return $this->hasRole($adminRole);
+            try {
+                return $this->hasRole($adminRole);
+            } catch (\Exception $e) {
+                // Role doesn't exist or Spatie Permission not installed
+                return false;
+            }
         }
 
         return false;

@@ -49,8 +49,10 @@ trait HasPageAuthorization
             return false;
         }
 
-        // Super admin bypass
-        if (config('laravilt-users.super_admin.enabled', true)) {
+        // Super admin bypass - only if explicitly enabled
+        // When bypass_permissions is true, super_admin gets all access without checking permissions
+        // When bypass_permissions is false (default), super_admin respects assigned permissions
+        if (config('laravilt-users.super_admin.bypass_permissions', false)) {
             $superAdminRole = config('laravilt-users.super_admin.role', 'super_admin');
             if (method_exists($user, 'hasRole') && $user->hasRole($superAdminRole)) {
                 return true;
@@ -63,13 +65,26 @@ trait HasPageAuthorization
             return true;
         }
 
-        // Check permission
+        // Check permission using Spatie Permission
+        $guardName = config('laravilt-users.guard_name', 'web');
+
         if (method_exists($user, 'hasPermissionTo')) {
-            return $user->hasPermissionTo($permission);
+            try {
+                return $user->hasPermissionTo($permission, $guardName);
+            } catch (\Spatie\Permission\Exceptions\PermissionDoesNotExist $e) {
+                // Permission doesn't exist in the database - deny access
+                // Run `php artisan laravilt:secure` to generate permissions
+                return false;
+            }
         }
 
-        // Fallback to Gate
-        return Gate::allows($permission);
+        // Check if a gate is defined for this permission
+        if (Gate::has($permission)) {
+            return Gate::allows($permission);
+        }
+
+        // No authorization system available - allow access by default
+        return true;
     }
 
     /**

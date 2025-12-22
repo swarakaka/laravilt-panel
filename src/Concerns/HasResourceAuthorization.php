@@ -118,12 +118,13 @@ trait HasResourceAuthorization
             return false;
         }
 
-        // Super admin bypass - check if super admin check is enabled
-        // Works even if laravilt-users config doesn't exist
-        $superAdminEnabled = config('laravilt-users.super_admin.enabled', config('permission.super_admin.enabled', true));
-        $superAdminRole = config('laravilt-users.super_admin.role', config('permission.super_admin.role', 'super_admin'));
+        // Super admin bypass - only if explicitly enabled AND using gate-based bypass
+        // When bypass_permissions is true, super_admin gets all access without checking permissions
+        // When bypass_permissions is false (default), super_admin respects assigned permissions
+        $bypassPermissions = config('laravilt-users.super_admin.bypass_permissions', false);
+        $superAdminRole = config('laravilt-users.super_admin.role', 'super_admin');
 
-        if ($superAdminEnabled && method_exists($user, 'hasRole')) {
+        if ($bypassPermissions && method_exists($user, 'hasRole')) {
             try {
                 if ($user->hasRole($superAdminRole)) {
                     return true;
@@ -140,25 +141,53 @@ trait HasResourceAuthorization
 
         // Use permission-based authorization
         $permission = static::getPermissionName($action);
+        $guardName = config('laravilt-users.guard_name', 'web');
 
         // Check if Spatie Permission is available
         if (method_exists($user, 'hasPermissionTo')) {
             try {
-                return $user->hasPermissionTo($permission);
-            } catch (\Exception $e) {
-                // Permission doesn't exist yet or Spatie Permission error
-                // Allow access by default - run `php artisan laravilt:secure` to generate permissions
-                return true;
+                $hasPermission = $user->hasPermissionTo($permission, $guardName);
+
+                // Debug: Log permission check result
+                if (config('app.debug')) {
+                    logger()->debug('Permission check', [
+                        'user_id' => $user->id,
+                        'permission' => $permission,
+                        'guard' => $guardName,
+                        'result' => $hasPermission,
+                        'user_permissions' => method_exists($user, 'getAllPermissions')
+                            ? $user->getAllPermissions()->pluck('name')->toArray()
+                            : 'N/A',
+                        'user_roles' => method_exists($user, 'getRoleNames')
+                            ? $user->getRoleNames()->toArray()
+                            : 'N/A',
+                    ]);
+                }
+
+                return $hasPermission;
+            } catch (\Spatie\Permission\Exceptions\PermissionDoesNotExist $e) {
+                // Permission doesn't exist in the database - deny access
+                // Run `php artisan laravilt:secure` to generate permissions
+                if (config('app.debug')) {
+                    logger()->debug('Permission does not exist - access denied', [
+                        'permission' => $permission,
+                        'guard' => $guardName,
+                    ]);
+                }
+
+                return false;
             }
         }
 
-        // Fallback to Gate check
-        try {
+        // Check if a policy or gate is defined for this permission
+        // If no gate/policy is defined, allow access by default
+        if (Gate::has($permission)) {
             return Gate::allows($permission);
-        } catch (\Exception $e) {
-            // Gate not defined - allow access by default
-            return true;
         }
+
+        // If we reach here, no authorization system is available
+        // Allow access by default - permissions package not installed
+        return true;
     }
 
     /**
