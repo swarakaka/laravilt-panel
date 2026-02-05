@@ -942,8 +942,8 @@ trait HasAuth
             $pages[] = $this->getProfilePage() ?? \Laravilt\Auth\Pages\Profile::class;
         }
 
-        if ($this->hasPasswordReset()) {
-            $pages[] = $this->getPasswordResetPage() ?? \Laravilt\Auth\Pages\Profile\ChangePassword::class;
+        if ($this->hasProfile() && class_exists(\Laravilt\Auth\Pages\Profile\ChangePassword::class)) {
+            $pages[] = \Laravilt\Auth\Pages\Profile\ChangePassword::class;
         }
 
         if ($this->hasTwoFactor()) {
