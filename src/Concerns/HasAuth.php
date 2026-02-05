@@ -938,36 +938,36 @@ trait HasAuth
     {
         $pages = [];
 
-        if ($this->hasProfile() && class_exists(\Laravilt\Auth\Pages\Profile::class)) {
-            $pages[] = \Laravilt\Auth\Pages\Profile::class;
+        if ($this->hasProfile()) {
+            $pages[] = $this->getProfilePage() ?? \Laravilt\Auth\Pages\Profile::class;
+        }
+        
+        if ($this->hasPasswordReset()) {
+            $pages[] = $this->getPasswordResetPage() ?? \Laravilt\Auth\Pages\Profile\ChangePassword::class;
         }
 
-        if ($this->hasProfile() && class_exists(\Laravilt\Auth\Pages\Profile\ChangePassword::class)) {
-            $pages[] = \Laravilt\Auth\Pages\Profile\ChangePassword::class;
+        if ($this->hasTwoFactor()) {
+            $pages[] = $this->getTwoFactorPage() ?? \Laravilt\Auth\Pages\Profile\ManageTwoFactor::class;
         }
 
-        if ($this->hasTwoFactor() && class_exists(\Laravilt\Auth\Pages\Profile\ManageTwoFactor::class)) {
-            $pages[] = \Laravilt\Auth\Pages\Profile\ManageTwoFactor::class;
+        if ($this->hasSessionManagement()) {
+            $pages[] = $this->getSessionManagementPage() ?? \Laravilt\Auth\Pages\Profile\ManageSessions::class;
         }
 
-        if ($this->hasSessionManagement() && class_exists(\Laravilt\Auth\Pages\Profile\ManageSessions::class)) {
-            $pages[] = \Laravilt\Auth\Pages\Profile\ManageSessions::class;
+        if ($this->hasApiTokens()) {
+            $pages[] = $this->getApiTokensPage() ?? \Laravilt\Auth\Pages\Profile\ManageApiTokens::class;
         }
 
-        if ($this->hasApiTokens() && class_exists(\Laravilt\Auth\Pages\Profile\ManageApiTokens::class)) {
-            $pages[] = \Laravilt\Auth\Pages\Profile\ManageApiTokens::class;
+        if ($this->hasPasskeys()) {
+            $pages[] = $this->getPasskeysPage() ?? \Laravilt\Auth\Pages\Profile\ManagePasskeys::class;
         }
 
-        if ($this->hasPasskeys() && class_exists(\Laravilt\Auth\Pages\Profile\ManagePasskeys::class)) {
-            $pages[] = \Laravilt\Auth\Pages\Profile\ManagePasskeys::class;
+        if ($this->hasConnectedAccounts()) {
+            $pages[] = $this->getConnectedAccountsPage() ?? \Laravilt\Auth\Pages\Profile\ConnectedAccounts::class;
         }
 
-        if ($this->hasConnectedAccounts() && class_exists(\Laravilt\Auth\Pages\Profile\ConnectedAccounts::class)) {
-            $pages[] = \Laravilt\Auth\Pages\Profile\ConnectedAccounts::class;
-        }
-
-        if ($this->hasLocaleTimezone() && class_exists(\Laravilt\Auth\Pages\LocaleTimezone::class)) {
-            $pages[] = \Laravilt\Auth\Pages\LocaleTimezone::class;
+        if ($this->hasLocaleTimezone()) {
+            $pages[] = $this->getLocaleTimezonePage() ?? \Laravilt\Auth\Pages\LocaleTimezone::class;
         }
 
         // Add Settings cluster if not already registered
