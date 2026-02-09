@@ -24,7 +24,6 @@ class HandleLocalization
         'ps', // Pashto
         'sd', // Sindhi
         'yi', // Yiddish
-        'ku', // Kurdish (some variants)
         'ug', // Uyghur
         'dv', // Divehi
     ];
