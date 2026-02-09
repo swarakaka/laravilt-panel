@@ -17,7 +17,6 @@ class HandleLocalization
      */
     protected array $rtlLocales = [
         'ar', // Arabic
-        'ckb', // Central Kurdish (ckb)
         'he', // Hebrew
         'fa', // Persian/Farsi
         'ur', // Urdu
